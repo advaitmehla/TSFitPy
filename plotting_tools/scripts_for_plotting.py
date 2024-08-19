@@ -11,6 +11,8 @@ import pandas as pd
 from numpy.linalg import LinAlgError
 from scipy.stats import gaussian_kde
 from warnings import warn
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from scripts.convolve import conv_macroturbulence, conv_rotation, conv_res
 from scripts.create_window_linelist_function import create_window_linelist
 from scripts.turbospectrum_class_nlte import TurboSpectrum
@@ -448,6 +450,8 @@ def plot_synthetic_data(turbospectrum_paths, teff, logg, met, vmic, lmin, lmax, 
 
     depart_bin_file_dict, depart_aux_file_dict, model_atom_file_dict = {}, {}, {}
     aux_file_length_dict = {}
+
+    # print(marcs_value_keys, marcs_values)
 
     if nlte_flag:
         nlte_config = ConfigParser()

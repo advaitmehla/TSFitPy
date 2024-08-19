@@ -194,9 +194,14 @@ class SyntheticSpectrumGenerator:
                     "errors": "Value of parameter <{}> needs to be in range {} to {}. You requested {}.".
                     format(key, options[0], options[-1], value)
                 }
-            for index in range(len(options) - 1):
-                if value < options[index + 1]:
+            index = None
+            for i in range(len(options) - 1):
+                if value < options[i + 1]:
+                    index = i
                     break
+            # Ensure index is assigned
+            if index is None:
+                raise ValueError("Value not found in options")
             # Mar. 11, 2022 added if statement for what to do if parameter is on the vertex. model interpolator needs the value for both models to be on that vertex or else will falsely think it's extrapolating
             if value == options[index]:
                 marcs_parameters[key] = [options[index], options[index], index, index]
@@ -340,6 +345,7 @@ class SyntheticSpectrumGenerator:
         if spherical:
             self.turbulent_velocity = microturbulence
 
+        print(marcs_model_list)
         return {"errors": None, "marcs_model_list": marcs_model_list, "spherical": spherical}
 
 
@@ -378,12 +384,14 @@ def fetch_marcs_grid(marcs_grid_list: str, marcs_parameters_to_ignore: list):
 
     # marcs_models = glob.glob(os_path.join(self.marcs_grid_path, "*"))  # 18.11.22 NS: Takes several seconds here per star, is not used anywhere though? Uncommented for now at least
     marcs_nlte_models = np.loadtxt(marcs_grid_list, dtype='str', usecols=(0,), unpack=True)
+    # print(marcs_nlte_models)
     spud_models = []
     for i in range(len(marcs_nlte_models)):
         aux_pattern = r"(\d\d\d\d)_g(....)_m(...)_t(..)_(..)_z(.....)_" \
                       r"a(.....)_c(.....)_n(.....)_o(.....)_r(.....)_s(.....)"
         re_test_aux = re.match(aux_pattern, marcs_nlte_models[i])
         mass = float(re_test_aux.group(3))
+        # print(mass)
         if mass == 0.0:
             spud = "p" + marcs_nlte_models[i] + ".mod"
         else:
@@ -391,6 +399,7 @@ def fetch_marcs_grid(marcs_grid_list: str, marcs_parameters_to_ignore: list):
         spud_models.append(spud)
 
     marcs_nlte_models = spud_models
+    # print(spud_models)
 
     for item in marcs_nlte_models:
 
@@ -450,6 +459,7 @@ def fetch_marcs_grid(marcs_grid_list: str, marcs_parameters_to_ignore: list):
 
     model_temperatures, model_logs, model_mets = None, None, None  # i think not used, but eats memory
 
+    print(marcs_values)
     return model_temperatures, model_logs, model_mets, marcs_value_keys, marcs_models, marcs_values
 
 
