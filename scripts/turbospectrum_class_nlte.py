@@ -547,8 +547,13 @@ class TurboSpectrum(SyntheticSpectrumGenerator):
             item_abund[periodic_table[i]] = float(solar_abundances[periodic_table[i]]) + round(float(self.metallicity), 6)
         if self.free_abundances is not None:
             # and if any abundance is passed, take it and convert to A(X)
+            # print("free_abundances: ", self.free_abundances)
             for element, abundance in self.free_abundances.items():
                 item_abund[element] = float(solar_abundances[element]) + round(float(abundance), 6)
+            # write solar abundances to a file
+            # with open(f"solarabundances.dat", 'w') as f:
+            #     for i in range(1, len(periodic_table)):
+            #         f.write(f"{i}  {solar_abundances[periodic_table[i]]}\n")
         for i in range(1, len(periodic_table)):
             individual_abundances += "{:d}  {:.6f}\n".format(i, item_abund[periodic_table[i]])
 

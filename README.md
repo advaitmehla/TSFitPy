@@ -135,7 +135,7 @@ This is a short version of the installation + running the code just to test that
   - You can also create your own linemasks.
   - To create your own linemask:
     - Create new textfile (naming doesn't matter)
-      - First column: wavelength center of the line (no need to be exact, it is only used in printing)
+	      - First column: wavelength center of the line (no need to be exact, it is only used in printing)
       - Second column: left side of the line where it is fitted (i.e. include wings as well)
       - Third column: right side of the line where it is fitted
     - You can add comments using `;` (either on any line or after the line's values)

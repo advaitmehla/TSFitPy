@@ -186,9 +186,9 @@ def plot_one_star(config_dict: dict, name_of_spectra_to_plot: str, plot_title=Tr
         wavelength, flux = np.loadtxt(filename_fitted_spectra, dtype=float, unpack=True)  # normalised flux fitted
         # check if file is located in the output folder, if not, load from the original folder
         if os.path.isfile(os.path.join(output_folder_location, filename_observed_spectra)):
-            wavelength_observed, flux_observed = np.loadtxt(os.path.join(output_folder_location, filename_observed_spectra), dtype=float, unpack=True, usecols=(0, 1))  # normalised flux observed
+            wavelength_observed, flux_observed, err_observed = np.loadtxt(os.path.join(output_folder_location, filename_observed_spectra), dtype=float, unpack=True, usecols=(0, 1, 2))  # normalised flux observed
         else:
-            wavelength_observed, flux_observed = np.loadtxt(os.path.join(observed_spectra_location, filename_observed_spectra), dtype=float, unpack=True, usecols=(0, 1)) # normalised flux observed
+            wavelength_observed, flux_observed, err_observed = np.loadtxt(os.path.join(observed_spectra_location, filename_observed_spectra), dtype=float, unpack=True, usecols=(0, 1, 2)) # normalised flux observed
 
         # sort the observed spectra, just like in TSFitPy
         if wavelength_observed.size > 1:
@@ -258,7 +258,8 @@ def plot_one_star(config_dict: dict, name_of_spectra_to_plot: str, plot_title=Tr
             if plot_title:
                 plt.title(f"{abund_column_name}={float(f'{fitted_abund:.3g}'):g}; EW={float(f'{fitted_ew:.3g}'):g}; χ2={float(f'{fitted_chisqr:.3g}'):g}")
             plt.plot(wavelength, flux, color='red')
-            plt.scatter(wavelength_observed_rv, flux_observed, color='black', marker='o', linewidths=0.5)
+            # plt.scatter(wavelength_observed_rv, flux_observed, color='black', marker='o', linewidths=0.5)
+            plt.errorbar(wavelength_observed_rv, flux_observed, yerr=err_observed, color='black', fmt='o', capsize=2)
             # xlimit is wavelength left/right +/- 0.3 AA
             if xlim is not None:
                 plt.xlim(xlim)
@@ -285,6 +286,7 @@ def plot_one_star(config_dict: dict, name_of_spectra_to_plot: str, plot_title=Tr
             plt.close()
     except (ValueError, IndexError, FileNotFoundError) as e:
         print(f"Error: {e}")
+    return wavelength, flux, wavelength_observed_rv, flux_observed
 
 def plot_scatter_df_results(df_results: pd.DataFrame, x_axis_column: str, y_axis_column: str, xlim=None, ylim=None,
                             color='black', invert_x_axis=False, invert_y_axis=False, **pltargs):

@@ -1,4 +1,0 @@
-; line mask 
-; Fe I lines, test lines as an example
-  5415.199  5414.95   5415.46
-  5441.339  5441.120  5441.58

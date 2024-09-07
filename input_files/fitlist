@@ -1,2 +1,2 @@
-#name_of_spectrum_to_fit     rv      teff  logg  [Fe/H]  Input_vmicroturb Input_vmacroturb
-UVES_Sun-1_cleaned_norm.txt 0.000000  5500  0.5  0.00
+#name_of_spectrum_to_fit     rv      teff  logg  [Fe/H]  Input_vmicroturb  A(H)  A(He)  A(C)  A(O)  A(Na)  A(S)  A(N)
+HD137613.txt     0.000000      5500  0.5  0.00  6.5  6.5  11.5  9.5  8.8  6.9  7.6  9.426

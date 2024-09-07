@@ -345,7 +345,7 @@ class SyntheticSpectrumGenerator:
         if spherical:
             self.turbulent_velocity = microturbulence
 
-        print(marcs_model_list)
+        # print(marcs_model_list)
         return {"errors": None, "marcs_model_list": marcs_model_list, "spherical": spherical}
 
 
@@ -459,7 +459,7 @@ def fetch_marcs_grid(marcs_grid_list: str, marcs_parameters_to_ignore: list):
 
     model_temperatures, model_logs, model_mets = None, None, None  # i think not used, but eats memory
 
-    print(marcs_values)
+    # print(marcs_values)
     return model_temperatures, model_logs, model_mets, marcs_value_keys, marcs_models, marcs_values
 
 
