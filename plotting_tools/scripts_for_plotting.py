@@ -426,7 +426,7 @@ def check_if_path_exists(path_to_check: str) -> str:
             raise ValueError(f"Configuration: {path_to_check} does not exist")
 
 def plot_synthetic_data(turbospectrum_paths, teff, logg, met, vmic, lmin, lmax, ldelta, atmosphere_type, nlte_flag,
-                        elements_in_nlte, element_abundances, include_molecules, resolution=0, macro=0, rotation=0,
+                        elements_in_nlte, element_abundances, include_molecules, free_isotopes=None, resolution=0, macro=0, rotation=0,
                         verbose=False, return_unnorm_flux=False, do_matplotlib_plot=True):
     for element in element_abundances:
         element_abundances[element] += met
@@ -500,7 +500,7 @@ def plot_synthetic_data(turbospectrum_paths, teff, logg, met, vmic, lmin, lmax, 
 
     ts.configure(t_eff=teff, log_g=logg, metallicity=met,
                  turbulent_velocity=vmic, lambda_delta=ldelta, lambda_min=lmin - 3, lambda_max=lmax + 3,
-                 free_abundances=element_abundances, temp_directory=temp_directory, nlte_flag=nlte_flag, verbose=verbose,
+                 free_abundances=element_abundances, free_isotopes = free_isotopes , temp_directory=temp_directory, nlte_flag=nlte_flag, verbose=verbose,
                  atmosphere_dimension=atmosphere_type, windows_flag=False, segment_file=None,
                  line_mask_file=None, depart_bin_file=depart_bin_file_dict,
                  depart_aux_file=depart_aux_file_dict, model_atom_file=model_atom_file_dict)
