@@ -104,9 +104,51 @@ def calculate_all_lines_chi_squared(wave_obs: np.ndarray, flux_obs: np.ndarray, 
             chi_square += np.sum(np.square(flux_line_obs - flux_line_mod) / flux_line_mod)
     return chi_square
 
+def calculate_all_lines_actual_chi_squared(wave_obs: np.ndarray, flux_obs: np.ndarray, error_obs_variance, wave_mod: np.ndarray,
+                                    flux_mod: np.ndarray, line_begins_sorted: np.ndarray, line_ends_sorted: np.ndarray,
+                                    seg_begins: np.ndarray, seg_ends: np.ndarray) -> float:
+    """
+    Calculates the actual chi square
+    :param wave_obs: Observed wavelength
+    :param flux_obs: Observed normalised flux
+    :param wave_mod: Synthetic wavelength
+    :param flux_mod: Synthetic normalised flux
+    :param line_begins_sorted: Sorted line list, wavelength of a line start
+    :param line_ends_sorted: Sorted line list, wavelength of a line end
+    :param seg_begins: Segment list where it starts, array
+    :param seg_ends: Segment list where it ends, array
+    :return: Calculated chi squared at lines
+    """
+    if wave_mod[1] - wave_mod[0] <= wave_obs[1] - wave_obs[0]:
+        flux_mod_interp = np.interp(wave_obs, wave_mod, flux_mod)
+        chi_square = 0
+        for l in range(len(line_begins_sorted[np.where(
+                (line_begins_sorted > np.min(seg_begins)) & (line_begins_sorted < np.max(seg_ends)))])):
+            flux_line_obs = flux_obs[
+                np.where((wave_obs <= line_ends_sorted[l]) & (wave_obs >= line_begins_sorted[l]))]
+            error_obs_variance_line = error_obs_variance[
+                np.where((wave_obs <= line_ends_sorted[l]) & (wave_obs >= line_begins_sorted[l]))]
+            flux_line_mod = flux_mod_interp[
+                np.where((wave_obs <= line_ends_sorted[l]) & (wave_obs >= line_begins_sorted[l]))]
+            chi_square += np.sum(np.square(flux_line_obs - flux_line_mod) / error_obs_variance_line / calculate_dof(wave_obs))
+                          
+    else:
+        flux_obs_interp = np.interp(wave_mod, wave_obs, flux_obs)
+        chi_square = 0
+        for l in range(len(line_begins_sorted[np.where(
+                (line_begins_sorted > np.min(seg_begins)) & (line_begins_sorted < np.max(seg_ends)))])):
+            flux_line_obs = flux_obs_interp[
+                np.where((wave_mod <= line_ends_sorted[l]) & (wave_mod >= line_begins_sorted[l]))]
+            error_obs_variance_line = error_obs_variance[
+                np.where((wave_mod <= line_ends_sorted[l]) & (wave_mod >= line_begins_sorted[l]))]
+            flux_line_mod = flux_mod[
+                np.where((wave_mod <= line_ends_sorted[l]) & (wave_mod >= line_begins_sorted[l]))]
+            chi_square += np.sum(np.square(flux_line_obs - flux_line_mod) / error_obs_variance_line / calculate_dof(wave_obs))
+    return chi_square
+
 
 def calc_ts_spectra_all_lines(obs_name: str, wave_mod_orig: np.ndarray, flux_mod_orig: np.ndarray, temp_directory: str, output_dir: str, wave_obs: np.ndarray,
-                              flux_obs: np.ndarray, macro: float, resolution: float, rot: float,
+                              flux_obs: np.ndarray, error_obs_variance, macro: float, resolution: float, rot: float,
                               line_begins_sorted: np.ndarray, line_ends_sorted: np.ndarray,
                               seg_begins: np.ndarray, seg_ends: np.ndarray) -> float:
     """
@@ -140,6 +182,9 @@ def calc_ts_spectra_all_lines(obs_name: str, wave_mod_orig: np.ndarray, flux_mod
 
     chi_square = calculate_all_lines_chi_squared(wave_obs, flux_obs, wave_mod, flux_mod, line_begins_sorted,
                                                  line_ends_sorted, seg_begins, seg_ends)
+    
+    real_chi_square = calculate_all_lines_actual_chi_squared(wave_obs, flux_obs, error_obs_variance, wave_mod, flux_mod, line_begins_sorted,
+                                                 line_ends_sorted, seg_begins, seg_ends)
 
     os.system(f"mv {os.path.join(temp_directory, 'spectrum_00000000.spec')} {os.path.join(output_dir, obs_name)}")
 
@@ -148,7 +193,7 @@ def calc_ts_spectra_all_lines(obs_name: str, wave_mod_orig: np.ndarray, flux_mod
         print(f"{wave_mod[l]}  {flux_mod[l]}", file=out)
     out.close()
 
-    return chi_square
+    return chi_square, real_chi_square
 
 
 def calculate_lbl_chi_squared(wave_obs: np.ndarray, flux_obs: np.ndarray, error_obs_variance: np.ndarray,
@@ -1113,7 +1158,7 @@ class Spectra:
         minimize_options = {'maxiter': self.ndimen * self.maxfev, 'disp': self.python_verbose,
                             'initial_simplex': init_param_guess, 'xatol': self.xatol_all, 'fatol': self.fatol_all}
         res = minimize_function(calc_chi_sqr_all_mode, initial_simplex_guess, function_arguments, minim_bounds, 'Nelder-Mead', minimize_options)
-        # print final result from minimazation
+
         if not self.night_mode:
             print(res.x)
 
@@ -1122,12 +1167,43 @@ class Spectra:
         else:
             output_elem_column = f"{self.elem_to_fit[0]}_Fe"
 
+
+        # spectra_to_fit = self.create_ssg_object(self._get_marcs_models())
+        spectra_to_fit = self
+        feh = self.feh
+        elem_abund_dict = get_input_xh_abund(feh, spectra_to_fit)
+        elem_abund_dict[self.elem_to_fit[0]] = res.x[0]
+        # print(elem_abund_dict, res.x[0])
+        vmic = self.vmic
+        wave_obs = spectra_to_fit.wavelength_obs
+
+        doppler = spectra_to_fit.stellar_rv + res.x[1]
+        wave_obs = apply_doppler_correction(spectra_to_fit.wavelength_obs, doppler)
+
+        macroturb = res.x[2] if self.fit_vmac else self.vmac
+        real_chi_square = 0
+        wavelength_fitted, flux_norm_fitted, _ = spectra_to_fit.configure_and_run_synthetic_code(ssg, feh, elem_abund_dict, vmic, spectra_to_fit.lmin, spectra_to_fit.lmax, True)
+
+        spectra_generated, chi_square = check_if_spectra_generated(wavelength_fitted, spectra_to_fit.night_mode)
+        if spectra_generated:
+            chi_square, real_chi_square = calc_ts_spectra_all_lines(spectra_to_fit.spec_name, wavelength_fitted, flux_norm_fitted, spectra_to_fit.temp_dir,
+                                                spectra_to_fit.output_folder,
+                                                wave_obs, spectra_to_fit.flux_norm_obs, spectra_to_fit.error_obs_variance,
+                                                macroturb, spectra_to_fit.resolution, spectra_to_fit.rotation,
+                                                spectra_to_fit.line_begins_sorted, spectra_to_fit.line_ends_sorted,
+                                                spectra_to_fit.seg_begins, spectra_to_fit.seg_ends)
+        else:
+            print("Spectra not generated, so chi square not calculated")
+        # print(f"final reduced chisq = {real_chi_square}, {chi_square}")
+        # print final result from minimazation
+
         result_dict = {
             "specname": self.spec_name,
             output_elem_column: res.x[0],
             "Doppler_Shift_add_to_RV": res.x[1],
             "chi_squared": res.fun,
-            "vmac": res.x[2] if self.fit_vmac else self.vmac
+            "vmac": res.x[2] if self.fit_vmac else self.vmac,
+            "red_chi_squared": real_chi_square
         }
         time_end = time.perf_counter()
         if not self.night_mode:
@@ -2009,7 +2085,10 @@ def print_intermediate_results(intermediate_results: dict, atmosphere_type: str,
                         for element in intermediate_results[key]:
                             string_to_print += f"[{element}/H]= {intermediate_results[key][element]:>7.4f} "
                     else:
-                        string_to_print += f"{key}= {intermediate_results[key]:>.4f} "
+                        if key == "red_chisqr":
+                            string_to_print += f"red_chisqr= {intermediate_results[key]:>14.8f} "
+                        else:
+                            string_to_print += f"{key}= {intermediate_results[key]:>.4f} "
         print(string_to_print)
 
 
@@ -2531,15 +2610,15 @@ def calc_chi_sqr_all_mode(param, ssg: SyntheticSpectrumGenerator, spectra_to_fit
 
     spectra_generated, chi_square = check_if_spectra_generated(wavelength_fitted, spectra_to_fit.night_mode)
     if spectra_generated:
-        chi_square = calc_ts_spectra_all_lines(spectra_to_fit.spec_name, wavelength_fitted, flux_norm_fitted, spectra_to_fit.temp_dir,
+        chi_square, real_chi_square = calc_ts_spectra_all_lines(spectra_to_fit.spec_name, wavelength_fitted, flux_norm_fitted, spectra_to_fit.temp_dir,
                                                spectra_to_fit.output_folder,
-                                               wave_obs, spectra_to_fit.flux_norm_obs,
+                                               wave_obs, spectra_to_fit.flux_norm_obs, spectra_to_fit.error_obs_variance,
                                                macroturb, spectra_to_fit.resolution, spectra_to_fit.rotation,
                                                spectra_to_fit.line_begins_sorted, spectra_to_fit.line_ends_sorted,
                                                spectra_to_fit.seg_begins, spectra_to_fit.seg_ends)
 
     intermediate_results = {"abundances": elem_abund_dict, "rv": doppler, "vmic": vmic, "vmac": macroturb,
-                            "rotation": spectra_to_fit.rotation, "chisqr": chi_square}
+                            "rotation": spectra_to_fit.rotation, "chisqr": chi_square, "red_chisqr": real_chi_square}
 
     print_intermediate_results(intermediate_results, spectra_to_fit.atmosphere_type, spectra_to_fit.night_mode)
 
