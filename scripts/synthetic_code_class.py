@@ -109,7 +109,7 @@ class SyntheticSpectrumGenerator:
 
     @abc.abstractmethod
     def configure(self, t_eff=None, log_g=None, metallicity=None, turbulent_velocity=None, lambda_delta=None,
-                  lambda_min=None, lambda_max=None, free_abundances=None, temp_directory=None, nlte_flag=None,
+                  lambda_min=None, lambda_max=None, free_abundances=None, free_isotopes=None, temp_directory=None, nlte_flag=None,
                   verbose=None, atmosphere_dimension=None, windows_flag=None, segment_file=None, line_mask_file=None,
                   depart_bin_file=None, depart_aux_file=None, model_atom_file=None):
         """

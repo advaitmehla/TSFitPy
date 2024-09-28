@@ -996,7 +996,7 @@ class Spectra:
                        fmt='%.5f', header="wavelength flux error_sigma")
 
     def configure_and_run_synthetic_code(self, spectrumclass: SyntheticSpectrumGenerator, feh: float, elem_abund: dict,
-                                         vmic: float, lmin: float, lmax: float, windows_flag: bool=False, temp_dir: str=None,
+                                         vmic: float, lmin: float, lmax: float, free_isotopes: dict=None, windows_flag: bool=False, temp_dir: str=None,
                                          teff: float=None, logg: float=None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Configures spectrumclass depending on input parameters and runs either NLTE or LTE
@@ -1026,11 +1026,14 @@ class Spectra:
             logg = self.logg
         else:
             logg = logg
+        # rat = 5.0
+        # free_isotopes = {"8.016" : rat/(1+rat), "8.017": 0.0, "8.018": 1/(1+rat)}
+        # self.free_isotopes = None
         if self.nlte_flag:
             logging.debug(f"NLTE model atoms: {self.model_atom_file_dict}")
             spectrumclass.configure(t_eff=teff, log_g=logg, metallicity=feh, turbulent_velocity=vmic,
                                     lambda_delta=self.ldelta, lambda_min=lmin, lambda_max=lmax,
-                                    free_abundances=elem_abund, temp_directory=temp_dir, nlte_flag=True,
+                                    free_abundances=elem_abund, free_isotopes=self.free_isotopes, temp_directory=temp_dir, nlte_flag=True,
                                     verbose=self.ssg_verbose,
                                     atmosphere_dimension=self.atmosphere_type, windows_flag=windows_flag,
                                     segment_file=self.segment_file, line_mask_file=self.linemask_file,
@@ -1039,7 +1042,7 @@ class Spectra:
         else:
             spectrumclass.configure(t_eff=teff, log_g=logg, metallicity=feh, turbulent_velocity=vmic,
                                     lambda_delta=self.ldelta, lambda_min=lmin, lambda_max=lmax,
-                                    free_abundances=elem_abund, temp_directory=temp_dir, nlte_flag=False,
+                                    free_abundances=elem_abund, free_isotopes=self.free_isotopes, temp_directory=temp_dir, nlte_flag=False,
                                     verbose=self.ssg_verbose,
                                     atmosphere_dimension=self.atmosphere_type, windows_flag=windows_flag,
                                     segment_file=self.segment_file, line_mask_file=self.linemask_file)
@@ -1154,6 +1157,8 @@ class Spectra:
 
         initial_simplex_guess, init_param_guess, minim_bounds = self.get_all_guess()
 
+        # self.free_isotopes = None
+
         function_arguments = (ssg, self)
         minimize_options = {'maxiter': self.ndimen * self.maxfev, 'disp': self.python_verbose,
                             'initial_simplex': init_param_guess, 'xatol': self.xatol_all, 'fatol': self.fatol_all}
@@ -1196,15 +1201,28 @@ class Spectra:
             print("Spectra not generated, so chi square not calculated")
         # print(f"final reduced chisq = {real_chi_square}, {chi_square}")
         # print final result from minimazation
-
-        result_dict = {
-            "specname": self.spec_name,
-            output_elem_column: res.x[0],
-            "Doppler_Shift_add_to_RV": res.x[1],
-            "chi_squared": res.fun,
-            "vmac": res.x[2] if self.fit_vmac else self.vmac,
-            "red_chi_squared": real_chi_square
-        }
+        free_isotopes = self.free_isotopes
+        if free_isotopes != None:
+            isorat = free_isotopes["8.016"] / free_isotopes["8.018"]
+            isorat = round(isorat, 2)
+            result_dict = {
+                "specname": self.spec_name,
+                output_elem_column: res.x[0],
+                "Doppler_Shift_add_to_RV": res.x[1],
+                "chi_squared": res.fun,
+                "vmac": res.x[2] if self.fit_vmac else self.vmac,
+                "red_chi_squared": real_chi_square,
+                "oisorat": isorat
+            }
+        else: 
+            result_dict = {
+                "specname": self.spec_name,
+                output_elem_column: res.x[0],
+                "Doppler_Shift_add_to_RV": res.x[1],
+                "chi_squared": res.fun,
+                "vmac": res.x[2] if self.fit_vmac else self.vmac,
+                "red_chi_squared": real_chi_square
+            }
         time_end = time.perf_counter()
         if not self.night_mode:
             print(f"Total runtime was {(time_end - time_start) / 60.:2f} minutes.")
@@ -3010,6 +3028,10 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
     logging.debug(f"Input vmic: {tsfitpy_configuration.vmic_input}, input vmac: {tsfitpy_configuration.vmac_input}, input rotation: {tsfitpy_configuration.rotation_input}")
     fitlist_spectra_parameters = fitlist_data.get_spectra_parameters_for_fit(tsfitpy_configuration.vmic_input, tsfitpy_configuration.vmac_input, tsfitpy_configuration.rotation_input)
 
+    # print(f"Fitlist data: {fitlist_spectra_parameters}")
+    # import sys
+    # sys.exit(0)
+
     if np.size(tsfitpy_configuration.init_guess_elements) > 0:
         init_guess_spectra_dict = collections.defaultdict(dict)
 
@@ -3153,9 +3175,10 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
         tsfitpy_configuration_scattered = client.scatter(tsfitpy_configuration)
 
         futures = []
+        isolist = []
         for idx, one_spectra_parameters in enumerate(fitlist_spectra_parameters):
             # specname_list, rv_list, teff_list, logg_list, feh_list, vmic_list, vmac_list, abundance_list
-            specname1, rv1, teff1, logg1, met1, microturb1, macroturb1, rotation1, abundances_dict1, resolution1, snr1 = one_spectra_parameters
+            specname1, rv1, teff1, logg1, met1, microturb1, macroturb1, rotation1, abundances_dict1, resolution1, snr1, rat = one_spectra_parameters
             logging.debug(f"specname1: {specname1}, rv1: {rv1}, teff1: {teff1}, logg1: {logg1}, met1: {met1}, "
                           f"microturb1: {microturb1}, macroturb1: {macroturb1}, rotation1: {rotation1}, snr1: {snr1},"
                           f"abundances_dict1: {abundances_dict1}, resolution1: {resolution1}")
@@ -3165,11 +3188,20 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
                                            tsfitpy_configuration.debug_mode, tsfitpy_configuration.compiler.lower(),
                                            tsfitpy_configuration.number_of_cpus)
             futures.append(spectra_future)  # prepares to get values
+            if rat != None:
+                iso = {"8.016" : rat/(1+rat), "8.017": 0.0, "8.018": 1/(1+rat)}
+            else:
+                iso = None
+            isolist.append(iso)
+    
         all_spectra_futures = client.gather(futures)
         futures = []
+        idx = 0
         for idx, spectra in enumerate(all_spectra_futures):
+            spectra.free_isotopes = isolist[idx]
             future = create_and_fit_spectra(client, spectra)
-            futures.append(future)  # prepares to get values
+            futures.append(future) 
+            idx += 1
 
         if tsfitpy_configuration.debug_mode >= 0:
             print("Start gathering")  # use http://localhost:8787/status to check status. the port might be different
@@ -3181,7 +3213,7 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
     else:
         results = []
         for idx, one_spectra_parameters in enumerate(fitlist_spectra_parameters):
-            specname1, rv1, teff1, logg1, met1, microturb1, macroturb1, rotation1, abundances_dict1, resolution1, snr1 = one_spectra_parameters
+            specname1, rv1, teff1, logg1, met1, microturb1, macroturb1, rotation1, abundances_dict1, resolution1, snr1, rat = one_spectra_parameters
             logging.debug(
                 f"specname1: {specname1}, rv1: {rv1}, teff1: {teff1}, logg1: {logg1}, met1: {met1}, microturb1: {microturb1}, macroturb1: {macroturb1}, rotation1: {rotation1}, abundances_dict1: {abundances_dict1}, resolution1: {resolution1}, snr1: {snr1},")
 
@@ -3189,7 +3221,11 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
                                            rotation1, abundances_dict1, resolution1, snr1, line_list_path_trimmed, idx,
                                            tsfitpy_configuration, m3dis_python_module, tsfitpy_configuration.debug_mode,
                                            tsfitpy_configuration.compiler.lower(), tsfitpy_configuration.number_of_cpus)
-
+            if rat != None:
+                iso = {"8.016" : rat/(1+rat), "8.017": 0.0, "8.018": 1/(1+rat)}
+            else:
+                iso = None
+            one_spectra.free_isotoptes = iso
             results.append(create_and_fit_spectra(None, one_spectra))
             del one_spectra
 
