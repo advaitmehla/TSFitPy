@@ -2,6 +2,7 @@ turbospectrum/*
 scripts/model_interpolators/*
 input_files/model_atmospheres/*
 input_files/test_model_atmospheres/*
+input_files/hdc_model_atmospheres/*
 *.mod
 modele.sm
 input_files/observed_spectra/*
@@ -10,3 +11,6 @@ output_files/*
 temp_directory/*
 input_files/linelists/*
 scripts/faltbon
+*.png
+*.dat
+*.88
