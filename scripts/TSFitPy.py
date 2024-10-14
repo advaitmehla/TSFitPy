@@ -3239,7 +3239,7 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
                 iso = {"8.016" : rat/(1+rat), "8.017": 0.0, "8.018": 1/(1+rat)}
             else:
                 iso = None
-            one_spectra.free_isotoptes = iso
+            one_spectra.free_isotopes = iso
             results.append(create_and_fit_spectra(None, one_spectra))
             del one_spectra
 
