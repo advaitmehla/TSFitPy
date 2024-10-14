@@ -1,0 +1,2 @@
+#name_of_spectrum_to_fit  rv  teff  logg  [Fe/H]  Input_vmicroturb  A(H)  A(He)  A(C)  A(O)  A(Na)  A(S)  A(Fe)  A(Mg)  A(Si)  A(N)  A(Ca)  A(Ti)  oisorat
+WISE222_clean.txt  0.0000000  5000.0  1.0  0.000  7.00000000000000  7.50  11.50  8.90  7.6  5.090  6.16  6.700  6.550  6.590  7.945  5.570  4.640  8.00000  

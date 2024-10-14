@@ -24,7 +24,7 @@ from scripts.TSFitPy import (output_default_configuration_name, output_default_f
 from scripts.auxiliary_functions import (calculate_equivalent_width, apply_doppler_correction, import_module_from_path,
                                          combine_linelists)
 from scripts.loading_configs import SpectraParameters, TSFitPyConfig
-from scripts.solar_abundances import periodic_table
+from scripts.solar_abundances import periodic_table, solar_abundances
 
 
 def get_all_file_names_in_a_folder(path_to_get_files_from: str) -> list:

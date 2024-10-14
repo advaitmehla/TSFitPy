@@ -556,6 +556,7 @@ class TurboSpectrum(SyntheticSpectrumGenerator):
             #         f.write(f"{i}  {solar_abundances[periodic_table[i]]}\n")
         for i in range(1, len(periodic_table)):
             individual_abundances += "{:d}  {:.6f}\n".format(i, item_abund[periodic_table[i]])
+        # print(item_abund)
 
         # Allow for user input isotopes as a dictionary (similar to abundances)
 

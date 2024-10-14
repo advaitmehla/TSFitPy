@@ -2127,13 +2127,23 @@ def calculate_dof(wavelength: np.ndarray, lmin: float=None, lmax: float=None, pa
     return dof
 
 
+# def get_input_xh_abund(feh: float, spectra_to_fit: Spectra) -> dict:
+#     elem_abund_dict_xh = {"Fe": feh}
+#     # first it takes the input abundances and then adds the fit abundances to it, so priority is given to fitted abundances
+#     for element in spectra_to_fit.input_abund:
+#         if element != "Fe":
+#             # add input abundances to dict [X/H]
+#             elem_abund_dict_xh[element] = spectra_to_fit.input_abund[element] + feh
+#     return elem_abund_dict_xh
+
 def get_input_xh_abund(feh: float, spectra_to_fit: Spectra) -> dict:
-    elem_abund_dict_xh = {"Fe": feh}
+    # elem_abund_dict_xh = {"Fe": feh}
+    elem_abund_dict_xh = {}
     # first it takes the input abundances and then adds the fit abundances to it, so priority is given to fitted abundances
     for element in spectra_to_fit.input_abund:
-        if element != "Fe":
+        # if element != "Fe":
             # add input abundances to dict [X/H]
-            elem_abund_dict_xh[element] = spectra_to_fit.input_abund[element] + feh
+        elem_abund_dict_xh[element] = spectra_to_fit.input_abund[element] + feh
     return elem_abund_dict_xh
 
 def calc_chi_sq_broadening(param: list, spectra_to_fit: Spectra, lmin: float, lmax: float,
@@ -2724,7 +2734,6 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
               "If none is given, the error will be assumed to be 0.01. This error is taken into account in chisqr calculation\n\n\n")
 
     logging.debug(f"Configuration: {tsfitpy_configuration.__dict__}")
-
     do_hydrogen_linelist = True
 
     if tsfitpy_configuration.compiler.lower() == "m3dis":
@@ -3066,12 +3075,14 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
                     input_elem_abundance_dict[spectra][input_elem] = 0
 
         tsfitpy_configuration.input_elem_abundance_dict = dict(input_elem_abundance_dict)
+        # print(f"Input element abundances: {tsfitpy_configuration.input_elem_abundance_dict}")
+        # import sys
+        # sys.exit(0)
 
     logging.debug("Reading linemask")
 
     line_centers, line_begins, line_ends = np.loadtxt(tsfitpy_configuration.linemask_file, comments=";", usecols=(0, 1, 2),
                                                       unpack=True)
-
     if line_centers.size > 1:
         tsfitpy_configuration.line_begins_sorted = np.array(sorted(line_begins))
         tsfitpy_configuration.line_ends_sorted = np.array(sorted(line_ends))
@@ -3182,6 +3193,9 @@ def launch_tsfitpy_with_config(tsfitpy_configuration: TSFitPyConfig, output_fold
             logging.debug(f"specname1: {specname1}, rv1: {rv1}, teff1: {teff1}, logg1: {logg1}, met1: {met1}, "
                           f"microturb1: {microturb1}, macroturb1: {macroturb1}, rotation1: {rotation1}, snr1: {snr1},"
                           f"abundances_dict1: {abundances_dict1}, resolution1: {resolution1}")
+            # print(abundances_dict1)
+            # import sys
+            # sys.exit(0)
             spectra_future = client.submit(load_spectra, specname1, teff1, logg1, rv1, met1, microturb1, macroturb1,
                                            rotation1, abundances_dict1, resolution1, snr1, line_list_path_trimmed, idx,
                                            tsfitpy_configuration_scattered, m3dis_python_module,
