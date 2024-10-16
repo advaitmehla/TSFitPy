@@ -598,7 +598,7 @@ class Spectra:
         self.input_vmac = tsfitpy_config.vmac_input
         self.input_rotation = tsfitpy_config.rotation_input
         self.elem_to_fit = tsfitpy_config.elements_to_fit
-        self.fit_feh = tsfitpy_config.fit_feh
+        self.fit_feh = False
         self.lmin = tsfitpy_config.wavelength_min
         self.lmax = tsfitpy_config.wavelength_max
         self.ldelta = tsfitpy_config.wavelength_delta
@@ -2005,6 +2005,7 @@ class Spectra:
         if self.fit_feh:
             met_index = np.where(self.elem_to_fit == "Fe")[0][0]
             met = res.x[met_index]
+            met = 0.0
         else:
             met = self.feh
         elem_abund_dict = {"Fe": met}
@@ -2290,7 +2291,7 @@ def calc_chi_sqr_abund_and_vmic(param: list, ssg: SyntheticSpectrumGenerator, sp
         # spectra_to_fit.elem_to_fit[i] = element name
         # param[0:nelement - 1] = abundance of the element
         elem_name = spectra_to_fit.elem_to_fit[i]
-        if elem_name != "Fe":
+        if elem_name != "Fea":
             elem_abund_dict_xh[elem_name] = param[i] + feh     # convert [X/Fe] to [X/H]
 
     if spectra_to_fit.atmosphere_type == "3D":
@@ -2424,7 +2425,7 @@ def calc_chi_sqr_abund_error(param: list, ssg: SyntheticSpectrumGenerator, spect
         # spectra_to_fit.elem_to_fit[i] = element name
         # param[0:nelement - 1] = abundance of the element
         elem_name = spectra_to_fit.elem_to_fit[i]
-        if elem_name != "Fe":
+        if elem_name != "Fea":
             elem_abund_dict_xh[elem_name] = param + feh     # convert [X/Fe] to [X/H]
 
     return calc_chi_sqr_error_generic(feh, elem_abund_dict_xh, vmic, teff, logg, ssg, spectra_to_fit, lmin, lmax,
@@ -2465,7 +2466,7 @@ def calc_chi_sqr_abund_with_vmic_inside(param: list, ssg: SyntheticSpectrumGener
         # spectra_to_fit.elem_to_fit[i] = element name
         # param[0:nelement - 1] = abundance of the element
         elem_name = spectra_to_fit.elem_to_fit[i]
-        if elem_name != "Fe":
+        if elem_name != "Fea":
             elem_abund_dict[elem_name] = param[i] + feh  # convert [X/Fe] to [X/H]
 
     spectra_to_fit.elem_abund_fitted_dict[line_number] = elem_abund_dict

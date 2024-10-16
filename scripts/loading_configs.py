@@ -572,7 +572,8 @@ class TSFitPyConfig:
                             elements_to_fit.append(fields[2 + i])
                         self.elements_to_fit = np.asarray(elements_to_fit)
                         if 'Fe' in self.elements_to_fit:
-                            self.fit_feh = True
+                            # self.fit_feh = True
+                            self.fit_teff = False
                         else:
                             self.fit_feh = False
                         """if "Fe" in elements_to_fit:

@@ -181,6 +181,7 @@ def generate_atmosphere(abusingclasses, teff, logg, vturb, met, lmin, lmax, ldel
     logg = logg
     if element == "Fe":
         met = abundance
+        met = met
     else:
         met = met
     lmin = lmin
@@ -190,7 +191,7 @@ def generate_atmosphere(abusingclasses, teff, logg, vturb, met, lmin, lmax, ldel
     for element1 in item_abund:
         # scale to [X/H] from [X/Fe]
         item_abund[element1] = item_abund[element1] + met
-    item_abund["Fe"] = met
+    # item_abund["Fe"] = met
     if element not in item_abund:
         item_abund[element] = abundance + met
     #temp_directory = f"../temp_directory_{datetime.datetime.now().strftime('%b-%d-%Y-%H-%M-%S')}__{np.random.random(1)[0]}/"
@@ -506,8 +507,8 @@ def run_nlte_corrections(config_file_name, output_folder_title, abundance=0):
         # specname_list, rv_list, teff_list, logg_list, feh_list, vmic_list, vmac_list, abundance_list
         specname1, rv1, teff1, logg1, met1, microturb1, macroturb1, rotation1, abundances_dict1, resolution1, _ = one_spectra_parameters
         # if element is Fe, then take abundance from metallicity
-        if abusingclasses.elem_to_fit[0] == "Fe":
-            abundance = met1
+        # if abusingclasses.elem_to_fit[0] == "Fe":
+        #     abundance = met1
         for j in range(len(abusingclasses.line_begins_sorted)):
             future = client.submit(generate_and_fit_atmosphere, os.path.join(tsfitpy_configuration.temporary_directory_path, 'abusingclasses.pkl'), specname1, teff1, logg1, microturb1, met1,
                                    abusingclasses.line_begins_sorted[j] - 2, abusingclasses.line_ends_sorted[j] + 2,
