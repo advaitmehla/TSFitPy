@@ -1,0 +1,2 @@
+#name_of_spectrum_to_fit     rv      teff  logg  [Fe/H]  Input_vmicroturb  A(H)  A(He)  A(C)  A(O)  A(Fe)  A(N)  A(Mg)  oisorat
+HD137613.txt     0.000000000      5500.0  1.0  0.000  6.50000000000000  7.50  11.50  9.7214  8.80  7.300  9.195  7.750  0
