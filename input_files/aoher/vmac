@@ -1,2 +1,2 @@
 #name_of_spectrum_to_fit  rv  teff  logg  [Fe/H]  Input_vmicroturb  A(H)  A(He)  A(C)  A(O)  A(Na)  A(S)  A(Fe)  A(N)  A(Ca)  A(Si)  A(Mg)  oisorat
-AOHer_clean.txt  0.00000  4750.0  1.0  0.0000000  7.00000000000000  7.50  11.50  8.96  8.10  5.290  6.66  7.000  7.402  5.370  7.290  6.550  50.0
+AOHer_clean.txt  0.00000  4750.0  1.0  0.0000000  7.00000000000000  7.50  11.50  8.96  7.87  5.290  6.66  7.000  7.402  5.370  7.290  6.550  73.04
