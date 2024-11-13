@@ -1895,7 +1895,7 @@ class Spectra:
                 # self.elem_to_fit[i] = element name
                 # param[1:nelement] = abundance of the element
                 elem_name = self.elem_to_fit[i]
-                if elem_name != "Fe":
+                if elem_name != "Fex":
                     # here element is [X/Fe], unless it's Fe, then it's [Fe/H]
                     elem_abund_dict[elem_name] = res.x[i]
             doppler_fit = self.rv_extra_fitted_dict[line_number]

@@ -1,2 +1,2 @@
-#name_of_spectrum_to_fit  rv  teff  logg  [Fe/H]  Input_vmicroturb  A(H)  A(He)  A(C)  A(O)  A(Fe)  A(N)  A(Mg)  A(S)  A(Si)  A(Na)  oisorat
-HD182040_clean.txt  0.000000000  5750.0  1.0  0.000  6.000000000000000000  7.50  11.50  9.757  8.00  7.300  9.292  7.950  6.76  7.190  6.790  0.59
+#name_of_spectrum_to_fit  rv  teff  logg  [Fe/H]  Input_vmicroturb  A(H)  A(He)  A(C)  A(O)  A(Fe)  A(N)  A(Mg)  A(S)  A(Si)  A(Na)  A(Ca)  oisorat
+HD182040_clean.txt  0.000000000  5750.0  1.0  0.000  6.0000000000  7.50  11.50  9.757  8.14  7.05  9.258  7.72  7.01  7.380  6.27  5.860  0.58
