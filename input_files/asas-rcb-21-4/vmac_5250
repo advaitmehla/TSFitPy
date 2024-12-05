@@ -1,0 +1,2 @@
+#name_of_spectrum_to_fit  rv  teff  logg  [Fe/H]  Input_vmicroturb  A(H)  A(He)  A(C)  A(Ca)  A(O)  A(Na)  A(S)  A(Fe)  A(N)  A(Mg)  A(Si)  oisorat
+ASAS-RCB-21.txt  0.000000000  5250.0  1.0  0.000  7.00000000000000  7.50  11.50  8.84  5.26  7.775  5.11  6.55  6.580  7.764  6.180  6.480  7.54
