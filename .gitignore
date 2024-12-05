@@ -14,4 +14,4 @@ scripts/faltbon
 *.png
 *.dat
 *.88
-plotting_tools/plots/
+plotting_tools/*
